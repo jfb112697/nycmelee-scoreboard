@@ -30,6 +30,9 @@
     "bundle": {
       "active": true,
       "targets": "all",
+      "macOS": {
+        "entitlements": "./entitlements.plist"
+      },
       "identifier": "com.tauri.dev",
       "icon": [
         "icons/32x32.png",
