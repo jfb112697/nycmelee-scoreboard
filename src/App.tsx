@@ -1,18 +1,17 @@
 // src/App.tsx
-import { Router, Route } from "@solidjs/router";
 import Layout from "./components/Layout";
-import Home from "./pages/Home";
 import { StateProvider } from "./context/StateContext";
 import "./App.css";
+import { DbProvider } from "./context/DatabaseContext";
 
-function App() {
+function App(props: { children: any }) {
   return (
     <StateProvider>
-      <Layout>
-        <Router>
-          <Route path="/" component={Home} />
-        </Router>
-      </Layout>
+      <DbProvider>
+        <Layout>
+          {props.children}
+        </Layout>
+      </DbProvider>
     </StateProvider>
   );
 }

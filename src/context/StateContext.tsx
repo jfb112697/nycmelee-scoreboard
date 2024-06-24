@@ -1,108 +1,135 @@
 // src/context/StateContext.tsx
-import { createContext, useContext, createSignal } from 'solid-js';
-import { State } from '../types';
+import { createContext, useContext, createSignal, Accessor, Setter, createEffect } from 'solid-js';
 import { invoke } from '@tauri-apps/api';
+import { readBinaryFile, BaseDirectory } from '@tauri-apps/api/fs';
+
+import { State, Scoreboard } from '../types';
+import { Pronouns } from '../enums';
 
 const initialState: State = {
-    Player1: {
-        name: "Red Squirrel",
-        character: "Fox",
-        sponsor: null,
-        score: 0,
-        h2hWins: 0,
-        pronouns: "It/Its",
+    scoreboard: {
+        players: [{
+            name: "Red Squirrel",
+            sponsor: null,
+            score: 0,
+            h2hWins: 0,
+            pronouns: Pronouns.HeHim
+        }, {
+            name: "Brando",
+            sponsor: null,
+            score: 0,
+            h2hWins: 0,
+            pronouns: Pronouns.HeHim
+
+        }],
+        Player1: {
+            name: "Red Squirrel",
+            sponsor: null,
+            score: 0,
+            h2hWins: 0,
+            pronouns: Pronouns.HeHim
+
+        },
+        Player2: {
+            name: "Brando",
+            sponsor: null,
+            score: 0,
+            h2hWins: 0,
+            pronouns: Pronouns.HeHim
+
+        },
+        round: "You need a round for the overlay to not crash",
+        bracket: null,
+        bestof: null,
+        tournamentName: null,
+        Commentators: [{ name: "Commentator 1", twitter: "twitter.com" }, { name: "Commentator 2", twitter: "twitter.com" }],
+        BreakRow1: null,
+        BreakRow2: null,
+        BreakRow3: null,
+        countdown: null,
+        Smashgg: {
+            slug: null,
+            streamQueue: null,
+        },
+        lowerThird: {
+            LeftAnnotationText: "NEXT",
+            Text1: "Starts at",
+            Text2: null,
+            TitleText: null,
+            ClockText: null,
+            Music: null,
+            Compact: false,
+            Commentary: true,
+        },
     },
-    Player2: {
-        name: "FIREEXE",
-        character: "Falco",
-        sponsor: null,
-        score: 0,
-        h2hWins: 0,
-        pronouns: "It/Its",
-    },
-    round: null,
-    bracket: null,
-    bestof: null,
-    tournamentName: null,
-    caster: null,
-    streamer: null,
-    ticker1: null,
-    ticker2: null,
-    ticker3: null,
-    ticker4: null,
-    ticker5: null,
-    twitchclip: null,
-    Commentators: null,
-    Comm1Name: null,
-    Comm2Name: null,
-    Comm3Name: null,
-    Comm4Name: null,
-    Comm1Twitter: null,
-    Comm2Twitter: null,
-    Comm3Twitter: null,
-    Comm4Twitter: null,
-    BreakRow1: null,
-    BreakRow2: null,
-    BreakRow3: null,
-    P1TitleSE: null,
-    P2TitleSE: null,
-    P3TitleSE: null,
-    P4TitleSE: null,
-    P5TitleSE: null,
-    P6TitleSE: null,
-    P1NameSE: null,
-    P2NameSE: null,
-    P3NameSE: null,
-    P4NameSE: null,
-    P5NameSE: null,
-    P6NameSE: null,
-    Crew1Name: null,
-    Crew2Name: null,
-    Crew1P1Name: null,
-    Crew1P1Stock: 4.0,
-    Crew1P2Name: null,
-    Crew1P2Stock: 4.0,
-    Crew1P3Name: null,
-    Crew1P3Stock: 4.0,
-    Crew1P4Name: null,
-    Crew1P4Stock: 4.0,
-    Crew2P1Name: null,
-    Crew2P1Stock: 4.0,
-    Crew2P2Name: null,
-    Crew2P2Stock: 4.0,
-    Crew2P3Name: null,
-    Crew2P3Stock: 4.0,
-    Crew2P4Name: null,
-    Crew2P4Stock: 4.0,
-    countdown: null,
-    Smashgg: {
-        slug: null,
-        streamQueue: null,
-    },
-    lowerThird: {
-        LeftAnnotationText: "NEXT",
-        Text1: "Starts at",
-        Text2: null,
-        TitleText: null,
-        ClockText: null,
-        Music: null,
-        Compact: false,
-        Commentary: true,
-    },
+    characters: null,
+    secrets: {
+    }
 };
 
-const StateContext = createContext<{ state: State; setState: (state: State) => void } | undefined>(undefined);
+const StateContext = createContext<{
+    state: Accessor<State>;
+    setState: Setter<State>;
+    updateState: (newState: Partial<Scoreboard>) => void;
+    commitScoreboard: () => void;
+} | undefined>(undefined);
 
 export function StateProvider(props: { children: any }) {
-    const [state, setState] = createSignal(initialState);
+    const [state, setState] = createSignal<State>(initialState);
+    const [charactersLoaded, setCharactersLoaded] = createSignal(false);
 
-    const updateState = (newState: State) => {
-        setState(newState);
-        invoke('update_response', { newResponse: JSON.stringify(newState) });
+
+    const updateState = (newScoreboardState: Partial<Scoreboard>) => {
+        setState(prevState => ({
+            ...prevState,
+            scoreboard: { ...prevState.scoreboard, ...newScoreboardState }
+        }));
+    }
+
+    const commitScoreboard = async () => {
+        await invoke("update_response", { newResponse: JSON.stringify(state().scoreboard) });
     };
 
+    commitScoreboard();
+
+
+    createEffect(async () => {
+        if (charactersLoaded()) return; // Exit if characters are already loaded
+
+        const characters = state().characters;
+        if (!characters) return;
+
+        let updated = false;
+        const updatedCharacters = await Promise.all(characters.map(async (character) => {
+            if (!character.url) {
+                const imagePath = `icons/${character.name}/0.png`; // Assuming the image is named "0.png" within the character's folder
+                let uint8Array;
+                try {
+                    uint8Array = await readBinaryFile(imagePath, { dir: BaseDirectory.AppData });
+                }
+                catch {
+                    console.log("Failed to load image for character", character.name);
+                    return character;
+                }
+                console.log(character.path, uint8Array);
+                const objectURL = URL.createObjectURL(
+                    new Blob([uint8Array], { type: 'image/png' })
+                );
+                updated = true;
+                return { ...character, url: objectURL }; // Update character with URL
+            }
+            return character;
+        }));
+
+        if (updated) {
+            setState({ ...state(), characters: updatedCharacters });
+            setCharactersLoaded(true); // Prevent further updates
+        }
+    });
+
+
     return (
-        <StateContext.Provider value={{ state: state(), setState: updateState }}>
+        <StateContext.Provider value={{ state, setState, updateState, commitScoreboard }}>
             {props.children}
         </StateContext.Provider>
     );

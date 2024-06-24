@@ -3,12 +3,13 @@ import Navbar from "./Navbar";
 import TopBar from "./TopBar";
 
 const Layout = (props: { children: JSX.Element }) => (
-  <div class=" bg-nycmelee-bg flex flex-col h-screen">
+  <div class="flex flex-col overflow-y-auto h-screen hide-scrollbar"
+    style={{ "scrollbar-width": "none", "-ms-overflow-style": "none" }}
+  >
     <TopBar />
     <div class="flex flex-1">
-      <Navbar />
-      <main class="flex-1 flex justify-center">
-        <div class="w-full px-8">{props.children}</div>
+      <main class="flex-1 flex-col flex justify-center">
+        {props.children}
       </main>
     </div>
   </div>

@@ -1,11 +1,21 @@
 // src/types.d.ts
+import {
+    Pronouns
+
+} from "./enums";
+export interface Character {
+    name: string,
+    url?: string = "",
+    path: string,
+}
+
 export interface Player {
     name: string;
-    character: string;
+    character?: Character;
     sponsor: string | null;
     score: number;
     h2hWins: number;
-    pronouns: string;
+    pronouns: Pronouns;
 }
 
 export interface LowerThird {
@@ -25,63 +35,27 @@ export interface Smashgg {
 }
 
 export interface State {
+    characters: Character[] | null;
+    secrets: any | null
+    scoreboard: Scoreboard;
+}
+export interface Scoreboard {
+    players: Player[] = [
+    { name: 'Jeremy', character: '', sponsor: "", score: 0, h2hWins: 0, pronouns: Pronouns.HeHim},
+    { name: 'Brando', character: '', sponsor: "", score: 0, h2hWins: 0, pronouns: Pronouns.HeHim}
+    ];
     Player1: Player;
     Player2: Player;
     round: string | null;
     bracket: string | null;
     bestof: string | null;
     tournamentName: string | null;
-    caster: string | null;
-    streamer: string | null;
-    ticker1: string | null;
-    ticker2: string | null;
-    ticker3: string | null;
-    ticker4: string | null;
-    ticker5: string | null;
-    twitchclip: string | null;
-    Commentators: string | null;
-    Comm1Name: string | null;
-    Comm2Name: string | null;
-    Comm3Name: string | null;
-    Comm4Name: string | null;
-    Comm1Twitter: string | null;
-    Comm2Twitter: string | null;
-    Comm3Twitter: string | null;
-    Comm4Twitter: string | null;
+    Commentators: ({ name: string; twitter: string; } | null)[];
     BreakRow1: string | null;
     BreakRow2: string | null;
     BreakRow3: string | null;
-    P1TitleSE: string | null;
-    P2TitleSE: string | null;
-    P3TitleSE: string | null;
-    P4TitleSE: string | null;
-    P5TitleSE: string | null;
-    P6TitleSE: string | null;
-    P1NameSE: string | null;
-    P2NameSE: string | null;
-    P3NameSE: string | null;
-    P4NameSE: string | null;
-    P5NameSE: string | null;
-    P6NameSE: string | null;
-    Crew1Name: string | null;
-    Crew2Name: string | null;
-    Crew1P1Name: string | null;
-    Crew1P1Stock: number;
-    Crew1P2Name: string | null;
-    Crew1P2Stock: number;
-    Crew1P3Name: string | null;
-    Crew1P3Stock: number;
-    Crew1P4Name: string | null;
-    Crew1P4Stock: number;
-    Crew2P1Name: string | null;
-    Crew2P1Stock: number;
-    Crew2P2Name: string | null;
-    Crew2P2Stock: number;
-    Crew2P3Name: string | null;
-    Crew2P3Stock: number;
-    Crew2P4Name: string | null;
-    Crew2P4Stock: number;
     countdown: string | null;
     Smashgg: Smashgg;
     lowerThird: LowerThird;
+
 }

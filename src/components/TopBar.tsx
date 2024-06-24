@@ -1,16 +1,21 @@
+
 import nycmelee from "../assets/nycmelee.png";
+import { MainNav } from "./Nav/MainNav";
+import { Button } from "./ui/button";
+
+
 
 const TopBar = () => (
-    <header class=" p-4 flex justify-between items-center">
-          <div class="h-full flex flex-row items-center px-[11px] pl-[33px] gap-[19px] w-[666px] h-[100px] max-h-[100px]">
-      <img
-        src={nycmelee}
-        alt="NYCMelee Logo"
-        class="w-[76.03px] h-[78px] mix-blend-screen"
-      />
+  <div class="border-b">
+    <div class="flex h-16 items-center px-4">
+      <MainNav class="mx-6" />
+      <div class="ml-auto flex items-center space-x-4">
+        <div>
+          <Button>Settings</Button>
+        </div>
       </div>
-    </header>
-  );
-  
-  export default TopBar;
-  
+    </div>
+  </div>
+);
+
+export default TopBar;

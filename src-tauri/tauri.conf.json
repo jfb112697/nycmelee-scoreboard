@@ -11,7 +11,15 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
+      "all": true,
+      "fs": {
+        "all": true,
+        "scope": [
+          "**/**",
+          "$APPDATA/**",
+          "$APPDATA/icons/**"
+        ]
+      },
       "shell": {
         "all": false,
         "open": true
@@ -21,7 +29,7 @@
       {
         "title": "nycmelee-scoreboard",
         "width": 800,
-        "height": 600
+        "height": 650
       }
     ],
     "security": {
@@ -33,7 +41,7 @@
       "macOS": {
         "entitlements": "./entitlements.plist"
       },
-      "identifier": "com.tauri.dev",
+      "identifier": "com.nycmelee.dev",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
