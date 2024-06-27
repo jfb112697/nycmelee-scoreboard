@@ -22,7 +22,7 @@ export const DbProvider = (props: { children: JSX.Element }): JSX.Element => {
         );
     });
 
-    const getSuggestions = async (query: string): Promise<string[]> => {
+    const getSuggestions = async (query: string | ''): Promise<string[]> => {
         if (db()) {
             if (query === '') {
                 const result = await db().select('SELECT name FROM playernames ORDER BY id DESC LIMIT 10');

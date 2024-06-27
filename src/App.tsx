@@ -6,13 +6,15 @@ import { DbProvider } from "./context/DatabaseContext";
 
 function App(props: { children: any }) {
   return (
-    <StateProvider>
-      <DbProvider>
+
+    <DbProvider>
+      <StateProvider>
         <Layout>
           {props.children}
         </Layout>
-      </DbProvider>
-    </StateProvider>
+      </StateProvider>
+
+    </DbProvider>
   );
 }
 

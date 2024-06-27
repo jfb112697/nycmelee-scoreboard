@@ -1,30 +1,43 @@
-import type { ComponentProps } from "solid-js"
-import { splitProps } from "solid-js"
+import { useLocation } from "@solidjs/router";
+import { hrtime } from "process";
+import type { ComponentProps } from "solid-js";
+import { splitProps } from "solid-js";
 
-import { cn } from "~/lib/utils"
+import { cn } from "~/lib/utils";
 
 export function MainNav(props: ComponentProps<"nav">) {
-    const [, rest] = splitProps(props, ["class"])
-    return (
-        <nav class={cn("flex items-center space-x-4 lg:space-x-6", props.class)} {...rest}>
-            <a
-                href="/"
-                class="text-sm font-medium transition-colors hover:text-primary"
-            >
-                Home
-            </a>
-            <a
-                href="/queue"
-                class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-                Stream Queue
-            </a>
-            <a
-                href="/players"
-                class="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-                Players
-            </a>
-        </nav>
-    )
+  const location = useLocation();
+  const navItems = [
+    {
+      name: "Home",
+      href: "/",
+    },
+    {
+      name: "Stream Queue",
+      href: "/stream-queue",
+    },
+  ];
+
+  const getNavItems = () => {
+    return navItems.map((item) => {
+      const isActive = location.pathname === item.href;
+      return (
+        <a
+          href={item.href}
+          class={cn(
+            "text-sm font-medium transition-colors hover:text-primary",
+            isActive && "text-primary"
+          )}
+        >
+          {item.name}
+        </a>
+      );
+    });
+  };
+
+  return (
+    <nav class="flex items-center gap-4 pl-4 text-lg text-muted-foreground">
+      {getNavItems()}
+    </nav>
+  );
 }

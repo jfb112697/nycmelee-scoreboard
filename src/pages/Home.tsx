@@ -1,62 +1,34 @@
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxControl,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxItemIndicator,
-  ComboboxItemLabel,
-  ComboboxTrigger
-} from "../components/ui/combobox";
 import { fs, path } from "@tauri-apps/api";
-import { createSignal, createEffect, onCleanup, For, Show } from "solid-js";
-import { listen } from '@tauri-apps/api/event';
+import {
+  createSignal,
+  createEffect,
+  onCleanup,
+  For,
+  Show,
+  onMount,
+} from "solid-js";
+import { listen } from "@tauri-apps/api/event";
 import { useAppState } from "../context/StateContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "~/components/ui/card"
-import { Col, Grid } from "~/components/ui/grid"
-import { TextField, TextFieldInput, TextFieldLabel } from "~/components/ui/text-field";
-import { readBinaryFile, BaseDirectory } from "@tauri-apps/api/fs";
-import { Character } from "~/types";
-import { Pronouns } from "../enums";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { appDataDir } from "@tauri-apps/api/path";
+import PlayerContainer from "~/components/PlayerContainer";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "~/components/ui/dropdown-menu"
+  TextField,
+  TextFieldInput,
+  TextFieldLabel,
+} from "~/components/ui/text-field";
 import { Button } from "~/components/ui/button";
-import { useDb } from "~/context/DatabaseContext";
+import ScoreboardInfoContainer from "~/components/ScoreboardInfoContainer";
+import LowerThird from "~/components/LowerThird";
+import { action } from "@solidjs/router";
 
 const Home = () => {
-  const { state, updateState, setState } = useAppState();
-  const [nameOptions, setNameOptions] = createSignal(["Jeremy"]);
-  const { getSuggestions, saveSuggestion } = useDb();
-  const [nameValue, setNameValue] = createSignal("Jeremy");
-  const [isBlured, setIsBlured] = createSignal(false);
+  const { state, update, commitScoreboard, setState } = useAppState();
+  const [nameSuggestions, setNameSuggestions] = createSignal<string[]>([]);
+  const [tabValue, setTabValue] = createSignal("match");
+  const [player1Container, setPlayer1Container] = createSignal<HTMLElement>();
 
-  createEffect(() => {
-    if (isBlured()) {
-      saveSuggestion(nameValue());
-      setIsBlured(false);
-    }
-  })
-
-
-  createEffect(async () => {
-    let suggestions = await getSuggestions(nameValue() || "");
-    state().scoreboard.players.map((p) => suggestions.push(p.name));
-    setNameOptions(suggestions);
-  })
   const checkForIcons = async () => {
     const appDataPath = await appDataDir();
     const iconsPath = `${appDataPath}/icons`;
@@ -67,14 +39,47 @@ const Home = () => {
     } else {
       const iconsDirContents = await fs.readDir(iconsPath);
       if (iconsDirContents.length > 1) {
-        const characters = iconsDirContents.map(file => ({
+        const characters = iconsDirContents.map((file) => ({
           path: `${iconsPath}/${file.name}`,
-          name: file.name as string
+          name: file.name as string,
         }));
-        setState(prevState => ({ ...prevState, characters }));
+        update.characters.update(characters);
       }
     }
   };
+
+  const focusRef = () => {
+    console.log(player1Container());
+    player1Container()?.focus();
+  };
+
+  onMount(() => {
+    const commands = JSON.parse(JSON.stringify(state.commands));
+    commands.push({
+      name: "Players",
+      description: "Go to the players section",
+      action: () => {
+        setTabValue("match");
+        focusRef();
+      },
+    });
+    commands.push({
+      name: "Commentary",
+      description: "Go to the commentators section",
+      action: () => {
+        setTabValue("commentary");
+      },
+    });
+    commands.push({
+      name: "Lower Third",
+      description: "Go to the lower third section",
+      action: () => {
+        setTabValue("lower-third");
+      },
+    });
+    setState({ ...state, commands: commands });
+    console.log(state.commands);
+  });
 
   createEffect(() => {
     checkForIcons();
@@ -89,7 +94,10 @@ const Home = () => {
       const appDataPath = await path.appDataDir();
       const iconsPath = `${appDataPath}/icons`;
 
-      const copyFilesRecursively = async (sourcePath: string, destinationPath: string) => {
+      const copyFilesRecursively = async (
+        sourcePath: string,
+        destinationPath: string
+      ) => {
         const files = await fs.readDir(sourcePath);
         for (const file of files) {
           const sourceFilePath = `${sourcePath}/${file.name}`;
@@ -110,139 +118,114 @@ const Home = () => {
     }
   };
 
-  listen('tauri://file-drop', async event => {
+  listen("tauri://file-drop", async (event) => {
     await handleDrop(event.payload as string[]);
   });
-
-  const handleInputChange = (index: number, field: string, value: any) => {
-    let players = [...state().scoreboard.players]; // Clone the array to ensure reactivity
-    players[index] = { ...players[index], [field]: value }; // Clone the object to ensure reactivity
-    updateState({ players: players });
-    console.log(state());
-  };
 
   return (
     <div class="flex-1 space-y-4 p-8 pt-6">
       <div class="flex items-center justify-between space-y-2">
         <div class="flex flex-col flex-1 items-stretch space-x-2 gap-2">
           <h2 class="text-3xl font-bold tracking-tight">Scoreboard</h2>
-          <Show when={(state().characters || []).length < 1}>
+          <Show when={(state.characters || []).length < 1}>
             <div class="w-full h-48 border-dashed border-4 border-x-nycmelee-border-light flex items-center justify-center text-nycmelee-white">
               Drop character icons folder here
             </div>
           </Show>
-          <Show when={(state().characters || []).length > 0}>
-            <Tabs defaultValue="match" class="space-y-4">
+          <Show when={(state.characters || []).length > 0}>
+            <Tabs
+              defaultValue="match"
+              onChange={(v) => setTabValue(v)}
+              value={tabValue()}
+              class="space-y-4"
+            >
               <TabsList>
                 <TabsTrigger value="match">Match</TabsTrigger>
-                <TabsTrigger value="commentary" disabled>
-                  Commentary
-                </TabsTrigger>
-                <TabsTrigger value="lower-third" disabled>
-                  Lower Third
-                </TabsTrigger>
+                <TabsTrigger value="commentary">Commentary</TabsTrigger>
+                <TabsTrigger value="lower-third">Lower Third</TabsTrigger>
               </TabsList>
               <TabsContent value="match" class="space-y-4">
-                <div class="flex justify-between gap-3">
-                  <For each={state().scoreboard.players}>
+                <div class="flex justify-between gap-3 flex-wrap md:flex-nowrap">
+                  <For each={state.scoreboard.players}>
                     {(player, index) => (
+                      <PlayerContainer
+                        index={index()}
+                        ref={index() === 0 ? setPlayer1Container : undefined}
+                      />
+                    )}
+                  </For>
+                </div>
+                <ScoreboardInfoContainer></ScoreboardInfoContainer>
+              </TabsContent>
+              <TabsContent value="commentary" class="space-y-4">
+                <div class="flex flex-col justify-between gap-3">
+                  <div class="flex flex-row gap-3 justify-between w-full items-center">
+                    <Button
+                      onClick={() =>
+                        update.scoreboard.Commentators.add({
+                          name: "",
+                          twitter: "",
+                        })
+                      }
+                    >
+                      Add Commentator
+                    </Button>
+                    <Button
+                      disabled={state.scoreboard.Commentators.length < 3}
+                      onClick={() =>
+                        update.scoreboard.Commentators.removeLast()
+                      }
+                    >
+                      Remove Commentator
+                    </Button>
+                  </div>
+                  <For each={state.scoreboard.Commentators}>
+                    {(commentator, index) => (
                       <Card class="flex flex-col justify-between w-full">
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle class="text-sm font-medium">Player {index() + 1}</CardTitle>
-                          <Show when={player.character && player.character.url} fallback={<div class="h-8 w-8"></div>}>
-                            <img src={player.character!.url} alt={player.character!.name} class="h-8 w-8 object-cover rounded-[3px]" />
-                          </Show>
+                          <CardTitle class="text-sm font-medium">
+                            Commentator {index() + 1}
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div class="flex flex-col gap-3">
-                            <div class="flex justify-between gap-3 items-end w-full">
-                              <TextField class=" max-w-[85px]">
-                                <TextFieldInput
-                                  type="text"
-                                  id="sponsor"
-                                  placeholder={"Sponsor"}
-                                  value={player.sponsor!}
-                                  onInput={(e: any) => (handleInputChange(index(), "sponsor", e.target.value))}
-                                />
-                              </TextField>
-                              <Combobox<string>
-                                options={nameOptions()}
-                                optionValue={(item) => (item)}
-                                optionTextValue={(item) => (item)}
-                                optionLabel={(item) => (item)}
-                                onBlur={(e) => { console.log(e); }}
+                          <div class="flex flex-row gap-3">
+                            <TextField>
+                              <TextFieldLabel>Name</TextFieldLabel>
+                              <TextFieldInput
+                                type="text"
+                                id="name"
                                 placeholder="Name"
-                                defaultValue={player.name}
-                                value={nameValue()}
-                                class="w-full"
-                                onChange={(value) => { setNameValue(value); handleInputChange(index(), "name", value) }}
-                                itemComponent={(props) => (
-                                  <ComboboxItem item={props.item}>
-                                    <ComboboxItemLabel>{props.item.rawValue}</ComboboxItemLabel>
-                                    <ComboboxItemIndicator />
-                                  </ComboboxItem>
-                                )}
-                              >
-                                <ComboboxControl aria-label="Names">
-                                  <ComboboxInput
-                                    onInput={(e: any) => { setNameValue(e.target.value) }}
-                                  />
-                                  <ComboboxTrigger />
-                                </ComboboxControl>
-                                <ComboboxContent />
-                              </Combobox>
-                              <Combobox<Character>
-                                options={state().characters || []}
-                                disallowEmptySelection={true}
-                                selectionBehavior="toggle"
-                                optionTextValue={(item) => (item.name)}
-                                optionValue={(item) => (item.name)}
-                                optionLabel={"name"}
-                                value={player.character}
-                                onChange={(v) => { console.log("hi"); handleInputChange(index(), "character", v) }}
-                                placeholder="Character"
-                                itemComponent={(props) => (
-                                  <ComboboxItem item={props.item} class="flex items-center gap-2">
-                                    <ComboboxItemLabel>{props.item.rawValue.name}</ComboboxItemLabel>
-                                    <ComboboxItemIndicator />
-                                    <img src={props.item.rawValue.url} alt={props.item.rawValue.name} class="h-8 w-8 object-cover rounded-[3px]" />
-                                  </ComboboxItem>
-                                )}
-                              >
-                                <ComboboxControl aria-label="Character">
-                                  <ComboboxInput />
-                                  <ComboboxTrigger />
-                                </ComboboxControl>
-                                <ComboboxContent />
-                              </Combobox>
-                            </div>
-                            <div class="flex">
-                              <DropdownMenu
-                              >
-                                <DropdownMenuTrigger>
-                                  <Button>{player.pronouns}</Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  <For each={Object.values(Pronouns)}>
-                                    {(pronoun) => (
-                                      <DropdownMenuItem
-                                        onClick={() => handleInputChange(index(), "pronouns", pronoun)}
-                                      >{pronoun}</DropdownMenuItem>
-                                    )}
-                                  </For>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-
-                            </div>
+                                value={commentator.name || ""}
+                                onInput={(e) =>
+                                  update.scoreboard.Commentators[
+                                    index()
+                                  ].update({ name: e.currentTarget.value })
+                                }
+                              />
+                            </TextField>
+                            <TextField>
+                              <TextFieldLabel>Twitter</TextFieldLabel>
+                              <TextFieldInput
+                                type="text"
+                                id="twitter"
+                                placeholder="Twitter"
+                                value={commentator.twitter || ""}
+                                onInput={(e) =>
+                                  update.scoreboard.Commentators[
+                                    index()
+                                  ].update({ twitter: e.currentTarget.value })
+                                }
+                              />
+                            </TextField>
                           </div>
                         </CardContent>
                       </Card>
                     )}
                   </For>
                 </div>
-                <Card>
-
-                </Card>
+              </TabsContent>
+              <TabsContent value="lower-third" class="space-y-4">
+                <LowerThird />
               </TabsContent>
             </Tabs>
           </Show>

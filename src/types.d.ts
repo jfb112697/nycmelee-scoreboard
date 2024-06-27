@@ -34,10 +34,23 @@ export interface Smashgg {
     streamQueue: string | null;
 }
 
+export interface Settings {
+    ggToken: string;
+    ggTournamentSlug: string;
+}
+
 export interface State {
     characters: Character[] | null;
-    secrets: any | null
+    secrets: any | null;
+    settings: Settings | any;
     scoreboard: Scoreboard;
+    commands: any[];
+}
+
+export interface Commentator {
+    name: string;
+    twitter: string;
+    pronouns?: Pronouns;
 }
 export interface Scoreboard {
     players: Player[] = [
@@ -50,7 +63,7 @@ export interface Scoreboard {
     bracket: string | null;
     bestof: string | null;
     tournamentName: string | null;
-    Commentators: ({ name: string; twitter: string; } | null)[];
+    Commentators: Commentator[];
     BreakRow1: string | null;
     BreakRow2: string | null;
     BreakRow3: string | null;
