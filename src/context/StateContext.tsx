@@ -79,7 +79,10 @@ const initialState: State = {
   settings: {
     ggToken: "",
     ggTournamentSlug: "",
+    port: 80,
   },
+  streamQueues: [],
+  selectedStream: "",
 };
 
 const StateContext = createContext<

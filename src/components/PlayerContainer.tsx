@@ -66,6 +66,12 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
     }
   });
 
+  createEffect(() => {
+    if (player().realCharacter) {
+      updatePlayer({ ...player(), character: player().realCharacter!.name });
+    }
+  });
+
   const characters = createMemo(() => state.characters || []);
 
   return (
@@ -78,12 +84,12 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
           Player {props.index + 1}
         </CardTitle>
         <Show
-          when={player().character && player()!.character?.url}
+          when={player().realCharacter && player()!.realCharacter?.url}
           fallback={<div class="h-8 w-8" />}
         >
           <img
-            src={player().character!.url}
-            alt={player().character!.name}
+            src={player().realCharacter!.url}
+            alt={player().realCharacter!.name}
             class="h-8 w-8 object-cover rounded-[3px]"
           />
         </Show>
@@ -146,8 +152,8 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
               optionTextValue={(item) => item.name}
               optionValue={(item) => item.name}
               optionLabel="name"
-              value={player().character}
-              onChange={(v) => updatePlayer({ character: v })}
+              value={player().realCharacter || undefined}
+              onChange={(v) => updatePlayer({ realCharacter: v })}
               placeholder="Character"
               itemComponent={(props) => (
                 <ComboboxItem item={props.item} class="flex items-center gap-2">

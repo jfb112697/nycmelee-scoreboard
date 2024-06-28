@@ -11,7 +11,8 @@ export interface Character {
 
 export interface Player {
     name: string;
-    character?: Character;
+    character?: string | null;
+    realCharacter?: Character | null;
     sponsor: string | null;
     score: number;
     h2hWins: number;
@@ -37,6 +38,25 @@ export interface Smashgg {
 export interface Settings {
     ggToken: string;
     ggTournamentSlug: string;
+    port: number;
+}
+
+export interface StreamQueue {
+    stream: {
+        streamName: string;
+    }
+    sets: {
+        fullRoundText: string;
+        slots: {
+            entrant: {
+                initialSeedNum: number;
+                name: string;
+                standing: {
+                    placement: number;
+                }
+            }
+        }[]
+    }[]
 }
 
 export interface State {
@@ -45,6 +65,8 @@ export interface State {
     settings: Settings | any;
     scoreboard: Scoreboard;
     commands: any[];
+    streamQueues: StreamQueue[] | [];
+    selectedStream: string;
 }
 
 export interface Commentator {

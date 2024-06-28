@@ -15,10 +15,16 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field";
 import { useAppState } from "~/context/StateContext";
+import { Settings } from "~/types";
+import {
+  NumberField,
+  NumberFieldInput,
+  NumberFieldLabel,
+} from "../ui/number-field";
 
 export function SettingsPage() {
   const { state, setState } = useAppState();
-  const [settings, setSettings] = createSignal(state.settings);
+  const [settings, setSettings] = createSignal<Settings>(state.settings);
   const [open, setOpen] = createSignal(false);
 
   const saveSettings = () => {
@@ -42,13 +48,13 @@ export function SettingsPage() {
               Start GG API Token
             </TextFieldLabel>
             <TextFieldInput
-              value={settings().ggApiToken}
+              value={settings().ggToken}
               class="col-span-3"
               type="text"
               onInput={(e) => {
                 setSettings({
                   ...settings(),
-                  ggApiToken: e.currentTarget.value,
+                  ggToken: e.currentTarget.value,
                 });
               }}
             />
@@ -69,6 +75,21 @@ export function SettingsPage() {
               type="text"
             />
           </TextField>
+          <NumberField
+            class="grid grid-cols-4 items-center justify-start gap-4"
+            onRawValueChange={(value) =>
+              setState((prevState) => ({
+                ...prevState,
+                settings: { ...prevState.settings, port: value },
+              }))
+            }
+            defaultValue={settings().port}
+            value={Number.isNaN(settings().port) ? "" : settings().port}
+            validationState={settings().port < 0 ? "invalid" : "valid"}
+          >
+            <NumberFieldLabel>Port</NumberFieldLabel>
+            <NumberFieldInput />
+          </NumberField>
         </div>
         <DialogFooter>
           <Button onMouseDown={saveSettings} type="submit">

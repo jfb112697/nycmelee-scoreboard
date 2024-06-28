@@ -1,7 +1,13 @@
 import { useLocation } from "@solidjs/router";
-import { hrtime } from "process";
 import type { ComponentProps } from "solid-js";
-import { splitProps } from "solid-js";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuIcon,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+} from "~/components/ui/navigation-menu";
 
 import { cn } from "~/lib/utils";
 
@@ -22,14 +28,10 @@ export function MainNav(props: ComponentProps<"nav">) {
     return navItems.map((item) => {
       const isActive = location.pathname === item.href;
       return (
-        <a
-          href={item.href}
-          class={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            isActive && "text-primary"
-          )}
-        >
-          {item.name}
+        <a href={item.href} class={cn("text-lg", isActive && "text-primary")}>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>{item.name}</NavigationMenuTrigger>
+          </NavigationMenuItem>
         </a>
       );
     });
@@ -37,7 +39,7 @@ export function MainNav(props: ComponentProps<"nav">) {
 
   return (
     <nav class="flex items-center gap-4 pl-4 text-lg text-muted-foreground">
-      {getNavItems()}
+      <NavigationMenu>{getNavItems()}</NavigationMenu>
     </nav>
   );
 }

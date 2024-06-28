@@ -176,7 +176,7 @@ const Home = () => {
                         update.scoreboard.Commentators.removeLast()
                       }
                     >
-                      Remove Commentator
+                      Remove Last Commentator
                     </Button>
                   </div>
                   <For each={state.scoreboard.Commentators}>
@@ -188,7 +188,7 @@ const Home = () => {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div class="flex flex-row gap-3">
+                          <div class="flex flex-row gap-3 items-end">
                             <TextField>
                               <TextFieldLabel>Name</TextFieldLabel>
                               <TextFieldInput
@@ -217,6 +217,25 @@ const Home = () => {
                                 }
                               />
                             </TextField>
+                            <Button
+                              variant={"destructive"}
+                              class="ms-auto"
+                              onClick={() => {
+                                let commentators = [
+                                  ...state.scoreboard.Commentators,
+                                ];
+                                commentators.splice(index(), 1);
+                                setState({
+                                  ...state,
+                                  scoreboard: {
+                                    ...state.scoreboard,
+                                    Commentators: commentators,
+                                  },
+                                });
+                              }}
+                            >
+                              Remove
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
