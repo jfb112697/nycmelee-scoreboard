@@ -1,4 +1,3 @@
-import { fs, path } from "@tauri-apps/api";
 import {
   createSignal,
   createEffect,
@@ -7,7 +6,7 @@ import {
   Show,
   onMount,
 } from "solid-js";
-import { listen } from "@tauri-apps/api/event";
+import { listen, once } from "@tauri-apps/api/event";
 import { useAppState } from "../context/StateContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -21,13 +20,68 @@ import {
 import { Button } from "~/components/ui/button";
 import ScoreboardInfoContainer from "~/components/ScoreboardInfoContainer";
 import LowerThird from "~/components/LowerThird";
-import { action } from "@solidjs/router";
+import { ScoreboardCommand } from "~/types";
+import { useNavigate } from "@solidjs/router";
+import { fs, path } from "@tauri-apps/api";
+import { P } from "node_modules/@kobalte/core/dist/index-b0947c3c";
+import { InitializeDatabase } from "~/components/Settings/MeleePlayerDatabase";
+
+const createCommands = (
+  setCurrentTab: (tab: string) => void,
+  focusPlayer1: () => void,
+  navigate: (path: string) => void
+): ScoreboardCommand[] => [
+  {
+    name: "Players",
+    description: "Go to the players section",
+    action: () => {
+      navigate("/");
+      setCurrentTab("match");
+      focusPlayer1();
+    },
+  },
+  {
+    name: "Commentary",
+    description: "Go to the commentators section",
+    action: () => {
+      navigate("/");
+      setCurrentTab("commentary");
+    },
+  },
+  {
+    name: "Lower Third",
+    description: "Go to the lower third section",
+    action: () => {
+      navigate("/");
+      setCurrentTab("lower-third");
+    },
+  },
+  {
+    name: "Stream Queue",
+    description: "Go to the stream queue section",
+    action: () => {
+      navigate("/stream-queue");
+    },
+  },
+];
 
 const Home = () => {
   const { state, update, commitScoreboard, setState } = useAppState();
-  const [nameSuggestions, setNameSuggestions] = createSignal<string[]>([]);
-  const [tabValue, setTabValue] = createSignal("match");
-  const [player1Container, setPlayer1Container] = createSignal<HTMLElement>();
+  const [player1Ref, setPlayer1Ref] = createSignal<
+    HTMLInputElement | undefined
+  >();
+  const navigate = useNavigate();
+
+  const focusPlayer1 = () => {
+    player1Ref()?.focus();
+  };
+
+  const setCurrentTab = (tab: string) => {
+    setState((prev) => ({
+      ...prev,
+      home: { ...prev.home, currentTab: tab },
+    }));
+  };
 
   const checkForIcons = async () => {
     const appDataPath = await appDataDir();
@@ -48,44 +102,15 @@ const Home = () => {
     }
   };
 
-  const focusRef = () => {
-    console.log(player1Container());
-    player1Container()?.focus();
-  };
-
-  onMount(() => {
-    const commands = JSON.parse(JSON.stringify(state.commands));
-    commands.push({
-      name: "Players",
-      description: "Go to the players section",
-      action: () => {
-        setTabValue("match");
-        focusRef();
-      },
-    });
-    commands.push({
-      name: "Commentary",
-      description: "Go to the commentators section",
-      action: () => {
-        setTabValue("commentary");
-      },
-    });
-    commands.push({
-      name: "Lower Third",
-      description: "Go to the lower third section",
-      action: () => {
-        setTabValue("lower-third");
-      },
-    });
-    setState({ ...state, commands: commands });
-    console.log(state.commands);
+  onMount(async () => {
+    const commands = createCommands(setCurrentTab, focusPlayer1, navigate);
+    setState((prev) => ({ ...prev, commands }));
+    checkForIcons();
+    await InitializeDatabase();
   });
 
-  createEffect(() => {
-    checkForIcons();
-    return onCleanup(() => {
-      // cleanup code here if needed
-    });
+  let unlisten: any = once("tauri://file-drop", async (event) => {
+    await handleDrop(event.payload as string[]);
   });
 
   const handleDrop = async (payload: string[]) => {
@@ -118,10 +143,6 @@ const Home = () => {
     }
   };
 
-  listen("tauri://file-drop", async (event) => {
-    await handleDrop(event.payload as string[]);
-  });
-
   return (
     <div class="flex-1 space-y-4 p-8 pt-6">
       <div class="flex items-center justify-between space-y-2">
@@ -135,8 +156,8 @@ const Home = () => {
           <Show when={(state.characters || []).length > 0}>
             <Tabs
               defaultValue="match"
-              onChange={(v) => setTabValue(v)}
-              value={tabValue()}
+              onChange={(v) => setCurrentTab(v)}
+              value={state.home.currentTab || "match"}
               class="space-y-4"
             >
               <TabsList>
@@ -150,12 +171,12 @@ const Home = () => {
                     {(player, index) => (
                       <PlayerContainer
                         index={index()}
-                        ref={index() === 0 ? setPlayer1Container : undefined}
+                        ref={index() === 0 ? setPlayer1Ref : undefined}
                       />
                     )}
                   </For>
                 </div>
-                <ScoreboardInfoContainer></ScoreboardInfoContainer>
+                <ScoreboardInfoContainer />
               </TabsContent>
               <TabsContent value="commentary" class="space-y-4">
                 <div class="flex flex-col justify-between gap-3">

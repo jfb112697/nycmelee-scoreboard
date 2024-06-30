@@ -69,7 +69,7 @@ const initialState: State = {
       TitleText: null,
       ClockText: null,
       Music: null,
-      Compact: false,
+      Scores: false,
       Commentary: true,
     },
   },
@@ -83,6 +83,10 @@ const initialState: State = {
   },
   streamQueues: [],
   selectedStream: "",
+  home: {
+    currentTab: "match",
+  },
+  playerDbInstance: null,
 };
 
 const StateContext = createContext<
@@ -225,8 +229,53 @@ export function StateProvider(props: { children: any }) {
     state.scoreboard.players.forEach((player) => {
       saveSuggestion(player.name);
     });
+
+    if (state.playerDbInstance) {
+      const player1Name = state.scoreboard.players[0].name;
+      const player2Name = state.scoreboard.players[1].name;
+
+      try {
+        const result = await state.playerDbInstance.select(
+          `SELECT 
+             SUM(CASE WHEN s.winner_id = p1.player_id THEN 1 ELSE 0 END) AS Player1Wins, 
+             SUM(CASE WHEN s.winner_id = p2.player_id THEN 1 ELSE 0 END) AS Player2Wins 
+           FROM 
+             sets s,
+             (SELECT player_id FROM players WHERE tag = '${player1Name}') p1,
+             (SELECT player_id FROM players WHERE tag = '${player2Name}') p2 
+           WHERE 
+             (s.p1_id = p1.player_id AND s.p2_id = p2.player_id) 
+             OR 
+             (s.p1_id = p2.player_id AND s.p2_id = p1.player_id);`
+        );
+
+        console.log(player1Name, player2Name);
+
+        console.log(result);
+
+        if (result.length > 0) {
+          const { Player1Wins, Player2Wins } = result[0];
+          update.scoreboard.players[0].update({ h2hWins: Player1Wins || 0 });
+          update.scoreboard.players[1].update({ h2hWins: Player2Wins || 0 });
+        }
+      } catch (error) {
+        console.error("Error querying player database:", error);
+      }
+    }
+    // Start backwards compatiblity changes
     update.scoreboard.Player1.update(state.scoreboard.players[0]);
     update.scoreboard.Player2.update(state.scoreboard.players[1]);
+    setState({
+      ...state,
+      scoreboard: {
+        ...state.scoreboard,
+        Smashgg: {
+          ...state.scoreboard.Smashgg,
+          slug: state.settings.ggTournamentSlug,
+        },
+      },
+    });
+
     await invoke("update_response", {
       newResponse: JSON.stringify(state.scoreboard),
     });

@@ -1717,6 +1717,12 @@ tailwindcss@^3.4.4:
     resolve "^1.22.2"
     sucrase "^3.32.0"
 
+"tauri-plugin-fs-extra-api@https://github.com/tauri-apps/tauri-plugin-fs-extra#v1":
+  version "0.0.0"
+  resolved "https://github.com/tauri-apps/tauri-plugin-fs-extra#1d5582ee97a36a60d7a6cebba5a8d0d7f4511600"
+  dependencies:
+    "@tauri-apps/api" "1.5.6"
+
 "tauri-plugin-sql-api@https://github.com/tauri-apps/tauri-plugin-sql#v1":
   version "0.0.0"
   resolved "https://github.com/tauri-apps/tauri-plugin-sql#6a4a14c36b1ad49c9f468351706d104a54e0540c"

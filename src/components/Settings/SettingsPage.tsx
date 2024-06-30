@@ -21,6 +21,7 @@ import {
   NumberFieldInput,
   NumberFieldLabel,
 } from "../ui/number-field";
+import MeleePlayerDatabase from "./MeleePlayerDatabase";
 
 export function SettingsPage() {
   const { state, setState } = useAppState();
@@ -92,9 +93,12 @@ export function SettingsPage() {
           </NumberField>
         </div>
         <DialogFooter>
-          <Button onMouseDown={saveSettings} type="submit">
-            Save changes
-          </Button>
+          <div class="flex w-full items-center justify-between">
+            <MeleePlayerDatabase></MeleePlayerDatabase>
+            <Button onMouseDown={saveSettings} type="submit">
+              Save changes
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

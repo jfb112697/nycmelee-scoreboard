@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "nycmelee-scoreboard",
-    "version": "0.0.0"
+    "version": "0.0.1"
   },
   "tauri": {
     "allowlist": {
@@ -27,7 +27,7 @@
     },
     "windows": [
       {
-        "title": "nycmelee-scoreboard",
+        "title": "NYCMelee Scoreboard",
         "width": 800,
         "height": 650
       }

@@ -127,6 +127,7 @@ fn main() {
                 .add_migrations("sqlite:autocomplete.db", migrations)
                 .build(),
         )
+        .plugin(tauri_plugin_fs_extra::init())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -8,7 +8,11 @@ export interface Character {
     url?: string = "",
     path: string,
 }
-
+export interface ScoreboardCommand {
+    name: string,
+    description: string,
+    action: () => void,
+}
 export interface Player {
     name: string;
     character?: string | null;
@@ -26,7 +30,7 @@ export interface LowerThird {
     TitleText: string | null;
     ClockText: string | null;
     Music: string | null;
-    Compact: boolean;
+    Scores: boolean;
     Commentary: boolean;
 }
 
@@ -67,6 +71,10 @@ export interface State {
     commands: any[];
     streamQueues: StreamQueue[] | [];
     selectedStream: string;
+    home: {
+        currentTab: string
+    }
+    playerDbInstance: any | null;
 }
 
 export interface Commentator {

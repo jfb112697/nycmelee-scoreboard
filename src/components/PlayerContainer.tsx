@@ -78,6 +78,7 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
     <Card
       ref={(el) => (localRef = el)}
       class="flex flex-col justify-between w-full"
+      id={(props.index == 0 && "player1") || ""}
     >
       <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle class="text-sm font-medium">

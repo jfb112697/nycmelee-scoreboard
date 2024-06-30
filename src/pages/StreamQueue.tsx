@@ -90,6 +90,10 @@ const StreamQueue = () => {
     }
   });
 
+  createEffect(() => {
+    setStreams(state.streamQueues as any);
+  });
+
   const getTournamentStreams = async (slug: string) => {
     try {
       const query = TOURNAMENT_QUERY;

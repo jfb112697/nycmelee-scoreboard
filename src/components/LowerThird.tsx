@@ -3,6 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { TextField, TextFieldInput, TextFieldLabel } from "./ui/text-field";
 import { useAppState } from "~/context/StateContext";
+import {
+  Switch,
+  SwitchControl,
+  SwitchLabel,
+  SwitchThumb,
+} from "~/components/ui/switch";
 
 const LowerThird = () => {
   const [tabValue, setTabValue] = createSignal("now");
@@ -39,30 +45,68 @@ const LowerThird = () => {
       <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle class="text-sm font-medium">Lower Third</CardTitle>
       </CardHeader>
-      <CardContent class="flex flex-col gap-4"></CardContent>
-      <Tabs
-        defaultValue="now"
-        onChange={(v) => setTabValue(v)}
-        value={tabValue()}
-        class="space-y-4"
-      >
-        <TabsList>
-          <TabsTrigger value="now">Now</TabsTrigger>
-          <TabsTrigger value="next">Next</TabsTrigger>
-          <TabsTrigger value="custom">Custom</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      <TextField>
-        <TextFieldLabel>Lower Third Text</TextFieldLabel>
-        <TextFieldInput
-          type="text"
-          disabled={tabValue() !== "custom"}
-          id="name"
-          placeholder="Name"
-          value={lowerThirdText()}
-          onInput={setLowerThirdText}
-        />
-      </TextField>
+      <CardContent class="flex flex-col gap-4">
+        <div class="flex w-full items-center justify-between">
+          <Tabs
+            defaultValue="now"
+            onChange={(v) => setTabValue(v)}
+            value={tabValue()}
+            class="space-y-4"
+          >
+            <TabsList>
+              <TabsTrigger value="now">Now</TabsTrigger>
+              <TabsTrigger value="next">Next</TabsTrigger>
+              <TabsTrigger value="custom">Custom</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div class="flex items-center justify-center"></div>
+          <Switch
+            class="flex items-center space-x-2"
+            checked={state.scoreboard.lowerThird.Commentary}
+            onChange={(e) => {
+              setState({
+                scoreboard: {
+                  ...state.scoreboard,
+                  lowerThird: { ...state.scoreboard.lowerThird, Commentary: e },
+                },
+              });
+            }}
+          >
+            <SwitchControl>
+              <SwitchThumb />
+            </SwitchControl>
+            <SwitchLabel>Show Commentary</SwitchLabel>
+          </Switch>
+          <Switch
+            class="flex items-center space-x-2"
+            checked={state.scoreboard.lowerThird.Scores}
+            onChange={(e) => {
+              setState({
+                scoreboard: {
+                  ...state.scoreboard,
+                  lowerThird: { ...state.scoreboard.lowerThird, Scores: e },
+                },
+              });
+            }}
+          >
+            <SwitchControl>
+              <SwitchThumb />
+            </SwitchControl>
+            <SwitchLabel>Show Scores</SwitchLabel>
+          </Switch>
+        </div>
+        <TextField>
+          <TextFieldLabel>Lower Third Text</TextFieldLabel>
+          <TextFieldInput
+            type="text"
+            disabled={tabValue() !== "custom"}
+            id="name"
+            placeholder="Name"
+            value={lowerThirdText()}
+            onInput={setLowerThirdText}
+          />
+        </TextField>
+      </CardContent>
     </Card>
   );
 };
