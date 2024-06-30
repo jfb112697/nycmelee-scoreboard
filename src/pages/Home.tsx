@@ -29,7 +29,8 @@ import { InitializeDatabase } from "~/components/Settings/MeleePlayerDatabase";
 const createCommands = (
   setCurrentTab: (tab: string) => void,
   focusPlayer1: () => void,
-  navigate: (path: string) => void
+  navigate: (path: string) => void,
+  commitScoreboard: () => void
 ): ScoreboardCommand[] => [
   {
     name: "Players",
@@ -61,6 +62,13 @@ const createCommands = (
     description: "Go to the stream queue section",
     action: () => {
       navigate("/stream-queue");
+    },
+  },
+  {
+    name: "Send Update",
+    description: "Send the current scoreboard to the overlay",
+    action: () => {
+      commitScoreboard();
     },
   },
 ];
@@ -103,7 +111,12 @@ const Home = () => {
   };
 
   onMount(async () => {
-    const commands = createCommands(setCurrentTab, focusPlayer1, navigate);
+    const commands = createCommands(
+      setCurrentTab,
+      focusPlayer1,
+      navigate,
+      commitScoreboard
+    );
     setState((prev) => ({ ...prev, commands }));
     checkForIcons();
     await InitializeDatabase();
@@ -180,7 +193,7 @@ const Home = () => {
               </TabsContent>
               <TabsContent value="commentary" class="space-y-4">
                 <div class="flex flex-col justify-between gap-3">
-                  <div class="flex flex-row gap-3 justify-between w-full items-center">
+                  <div class="flex flex-row gap-5 justify-between w-full items-center">
                     <Button
                       onClick={() =>
                         update.scoreboard.Commentators.add({
@@ -188,10 +201,15 @@ const Home = () => {
                           twitter: "",
                         })
                       }
+                      class="flex-shrink-0"
                     >
                       Add Commentator
                     </Button>
+                    <Button onClick={commitScoreboard} class="w-full">
+                      Send Update
+                    </Button>
                     <Button
+                      class="flex-shrink-0"
                       disabled={state.scoreboard.Commentators.length < 3}
                       onClick={() =>
                         update.scoreboard.Commentators.removeLast()

@@ -11,6 +11,9 @@
   },
   "tauri": {
     "allowlist": {
+      "globalShortcut": {
+        "all": true
+      },
       "all": true,
       "fs": {
         "all": true,

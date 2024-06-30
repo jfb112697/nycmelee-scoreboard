@@ -25,6 +25,7 @@ export interface Player {
 
 export interface LowerThird {
     LeftAnnotationText: string;
+    mode: string;
     Text1: string;
     Text2: string | null;
     TitleText: string | null;
@@ -70,6 +71,7 @@ export interface State {
     scoreboard: Scoreboard;
     commands: any[];
     streamQueues: StreamQueue[] | [];
+    updateStreamQueue: any | null
     selectedStream: string;
     home: {
         currentTab: string

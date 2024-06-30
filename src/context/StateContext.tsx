@@ -63,6 +63,7 @@ const initialState: State = {
       streamQueue: null,
     },
     lowerThird: {
+      mode: "now",
       LeftAnnotationText: "NEXT",
       Text1: "Starts at",
       Text2: null,
@@ -87,6 +88,7 @@ const initialState: State = {
     currentTab: "match",
   },
   playerDbInstance: null,
+  updateStreamQueue: null,
 };
 
 const StateContext = createContext<
@@ -275,11 +277,54 @@ export function StateProvider(props: { children: any }) {
         },
       },
     });
+    // end backwards compatibility - start lower third updating
+    if (state.scoreboard.lowerThird.mode == "now") {
+      setState({
+        ...state,
+        scoreboard: {
+          ...state.scoreboard,
+          lowerThird: {
+            ...state.scoreboard.lowerThird,
+            LeftAnnotationText: "NOW",
+            TitleText: `${state.scoreboard.players[0].name} vs ${state.scoreboard.players[1].name}`,
+          },
+        },
+      });
+    } else if (state.scoreboard.lowerThird.mode == "next") {
+      if (state.selectedStream && state.streamQueues) {
+        const streamQueue = state.streamQueues.find(
+          (sQ) => sQ.stream.streamName === state.selectedStream
+        );
+        if (streamQueue) {
+          let [entrant1, entrant2] = streamQueue.sets[0].slots;
+          setState({
+            ...state,
+            scoreboard: {
+              ...state.scoreboard,
+              lowerThird: {
+                ...state.scoreboard.lowerThird,
+                LeftAnnotationText: "NEXT",
+                TitleText: `${entrant1.entrant.name} vs ${entrant2.entrant.name}`,
+              },
+            },
+          });
+        }
+      }
+    }
 
     await invoke("update_response", {
       newResponse: JSON.stringify(state.scoreboard),
     });
   };
+
+  createEffect(() => {
+    if (state.updateStreamQueue != null) {
+      setInterval(() => {
+        console.log("fetching stream q");
+        state.updateStreamQueue();
+      }, 10000);
+    }
+  });
 
   createEffect(async () => {
     if (charactersLoaded()) return;

@@ -27,7 +27,8 @@
     "tailwindcss": "^3.4.4",
     "tailwindcss-animate": "^1.0.7",
     "tauri-plugin-fs-extra-api": "https://github.com/tauri-apps/tauri-plugin-fs-extra#v1",
-    "tauri-plugin-sql-api": "https://github.com/tauri-apps/tauri-plugin-sql#v1"
+    "tauri-plugin-sql-api": "https://github.com/tauri-apps/tauri-plugin-sql#v1",
+    "tauri-plugin-stronghold-api": "https://github.com/tauri-apps/tauri-plugin-stronghold#v1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1",

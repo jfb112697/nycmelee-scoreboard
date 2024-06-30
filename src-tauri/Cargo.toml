@@ -18,6 +18,7 @@ tokio = {version = "1.38.0", features = ["full"] }
 warp = "0.3.7"
 reqwest = "0.12.5"
 tauri-plugin-fs-extra = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-stronghold = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"

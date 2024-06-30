@@ -95,7 +95,7 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
           />
         </Show>
       </CardHeader>
-      <CardContent>
+      <CardContent tabIndex={props.index + 1}>
         <div class="flex flex-col gap-3">
           <div class="flex justify-between gap-3 items-end w-full">
             <TextField class="max-w-[85px]">
@@ -134,6 +134,7 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
             >
               <ComboboxControl aria-label="Names">
                 <ComboboxInput
+                  tabIndex={1}
                   value={inputValue()}
                   class="name-input"
                   onInput={(e) => {
@@ -171,7 +172,7 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
               )}
             >
               <ComboboxControl aria-label="Character">
-                <ComboboxInput />
+                <ComboboxInput tabIndex={1} />
                 <ComboboxTrigger />
               </ComboboxControl>
               <ComboboxContent />
@@ -186,14 +187,16 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
               validationState={player().score < 0 ? "invalid" : "valid"}
             >
               <div class="flex min-w-[45px] relative ">
-                <NumberFieldInput />
+                <NumberFieldInput tabIndex={1} />
                 <NumberFieldIncrementTrigger />
                 <NumberFieldDecrementTrigger />
               </div>
             </NumberField>
             <DropdownMenu>
               <DropdownMenuTrigger>
-                <Button variant={"outline"}>{player().pronouns}</Button>
+                <Button tabIndex={1} variant={"outline"}>
+                  {player().pronouns}
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <For each={Object.values(Pronouns)}>

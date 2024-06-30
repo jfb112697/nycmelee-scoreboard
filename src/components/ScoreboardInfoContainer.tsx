@@ -61,13 +61,14 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
         <CardTitle class="text-sm font-medium">Tournament Info</CardTitle>
       </CardHeader>
       <CardContent>
-        <div class="flex gap-3 flex-wrap md:flex-nowrap">
+        <div class="flex gap-3 flex-wrap md:flex-nowrap ">
           <TextField>
             <TextFieldInput
               class="w-fit"
               type="text"
               id="round"
               placeholder="Round"
+              tabIndex={1}
               value={state.scoreboard.round || ""}
               onInput={(e) =>
                 update.scoreboard.update({ round: e.currentTarget.value })
@@ -102,11 +103,13 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
             variant={"secondary"}
             class="min-w-[105px] flex-1"
             onClick={swapPlayers}
+            tabIndex={1}
           >
             Swap Ports
           </Button>
           <Button
             variant="destructive"
+            tabIndex={1}
             onClick={() => {
               handleReset();
             }}
@@ -115,6 +118,7 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
           </Button>
           <Button
             class="min-w-[115px] flex-1 md:w-full"
+            tabIndex={1}
             onClick={async () => await commitScoreboard()}
           >
             Send Update

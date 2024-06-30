@@ -64,7 +64,7 @@ const StreamQueue = () => {
   const [selectedStream, setSelectedStream] = createSignal<string>(
     state.selectedStream
   );
-  const [streamQueue, setStreamQueue] = createSignal<any>([]);
+  const [streamQueue, setStreamQueue] = createSignal<any>(state.streamQueues);
   const navigate = useNavigate();
 
   const settings = createMemo(() => state.settings);
@@ -84,6 +84,9 @@ const StreamQueue = () => {
       setState((prevState) => ({
         ...prevState,
         selectedStream: currentSelectedStream,
+        updateStreamQueue: async () => {
+          await getStreamQueue(settings().ggTournamentSlug);
+        },
       }));
       console.log(state);
       getStreamQueue(settings().ggTournamentSlug);
