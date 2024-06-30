@@ -5,61 +5,72 @@ import {
   createSignal,
   createEffect,
   JSX,
+  onMount,
 } from "solid-js";
 import Database from "tauri-plugin-sql-api";
 
 interface DbContextType {
-  getSuggestions: (query: string) => Promise<string[]>;
-  saveSuggestion: (suggestion: string) => Promise<void>;
+  getSuggestions: (
+    query: string
+  ) => Promise<{ name: string; sponsor: string }[]>;
+  saveSuggestion: (name: string, sponsor: string) => Promise<void>;
 }
 
 const DbContext = createContext<DbContextType | undefined>(undefined);
 
 export const DbProvider = (props: { children: JSX.Element }): JSX.Element => {
   const [autocompleteDb, setautocompleteDb] = createSignal<any>(null);
-  const [playerDb, setPlayerDb] = createSignal<any>(null);
-
-  createEffect(async () => {
+  onMount(async () => {
     const dbInstance = await Database.load("sqlite:autocomplete.db");
     setautocompleteDb(dbInstance);
 
     // Run any necessary setup or migration tasks here if needed
-    await dbInstance.execute(
-      "CREATE TABLE IF NOT EXISTS playernames (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE);"
-    );
   });
 
-  const getSuggestions = async (query: string | ""): Promise<string[]> => {
+  const getSuggestions = async (
+    query: string
+  ): Promise<{ name: string; sponsor: string }[]> => {
     if (autocompleteDb()) {
+      let result;
       if (query === "") {
-        const result = await autocompleteDb().select(
-          "SELECT name FROM playernames ORDER BY id DESC LIMIT 10"
+        result = await autocompleteDb().select(
+          "SELECT name, sponsor FROM playernames ORDER BY id DESC LIMIT 10"
         );
-        return result.map((row: { name: string }) => row.name);
       } else {
-        const result = await autocompleteDb().select(
-          "SELECT name FROM playernames WHERE name LIKE $1",
-          [`%${query}%`],
-          " LIMIT 10"
+        result = await autocompleteDb().select(
+          "SELECT name, sponsor FROM playernames WHERE name LIKE $1 LIMIT 10",
+          [`%${query}%`]
         );
-        return result.map((row: { name: string }) => row.name);
       }
+
+      // Map the result to return the array of objects with name and sponsor
+      return result.map((row: { name: string; sponsor: string }) => ({
+        name: row.name,
+        sponsor: row.sponsor,
+      }));
     }
     return [];
   };
 
-  const saveSuggestion = async (suggestion: string): Promise<void> => {
+  const saveSuggestion = async (
+    name: string,
+    sponsor: string
+  ): Promise<void> => {
     if (autocompleteDb()) {
       try {
+        // First, attempt to insert the new player
         await autocompleteDb().execute(
-          "INSERT INTO playernames (name) VALUES ($1)",
-          [suggestion]
+          "INSERT OR IGNORE INTO playernames (name, sponsor) VALUES ($1, $2)",
+          [name, sponsor]
+        );
+
+        // Then, update the sponsor if the player already exists
+        await autocompleteDb().execute(
+          "UPDATE playernames SET sponsor = $1 WHERE name = $2",
+          [sponsor, name]
         );
       } catch (error: any) {
-        console.log(
-          `Suggestion "${suggestion}" already exists in the database.`,
-          error
-        );
+        console.error(`Error saving suggestion "${name}":`, error);
       }
     }
   };

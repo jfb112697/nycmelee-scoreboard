@@ -229,7 +229,7 @@ export function StateProvider(props: { children: any }) {
 
   const commitScoreboard = async () => {
     state.scoreboard.players.forEach((player) => {
-      saveSuggestion(player.name);
+      saveSuggestion(player.name, player.sponsor || "");
     });
 
     if (state.playerDbInstance) {

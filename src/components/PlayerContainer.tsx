@@ -7,7 +7,7 @@ import {
   splitProps,
 } from "solid-js";
 import { Pronouns } from "~/enums";
-import { Character } from "~/types";
+import { Character, Player } from "~/types";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import {
   ComboboxItem,
@@ -53,7 +53,9 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
     update.scoreboard.players[props.index].update(data);
   };
 
-  const [nameSuggestions, setNameSuggestions] = createSignal<string[]>([]);
+  const [nameSuggestions, setNameSuggestions] = createSignal<
+    { name: string; sponsor: string }[]
+  >([]);
   const [inputValue, setInputValue] = createSignal(player().name || "");
 
   createEffect(async () => {
@@ -109,25 +111,30 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
                 }
               />
             </TextField>
-            <Combobox<string>
+            <Combobox<Partial<Player>>
               options={nameSuggestions()}
-              optionValue={(item) => item}
-              optionTextValue={(item) => item}
-              optionLabel={(item) => item}
+              optionValue={(item) => item.name || ""} // Update the optionValue prop to return the name property of the item
+              optionTextValue={(item) => item.name || ""}
+              optionLabel={(item) => item.name || ""}
               placeholder="Name"
-              value={player().name}
+              value={player()}
               onBlur={() => {
                 console.log(player());
-                saveSuggestion(player().name);
+                saveSuggestion(player().name, player().sponsor || "");
               }}
               class="w-full"
               onChange={(value) => {
-                updatePlayer({ name: value });
-                setInputValue(value);
+                updatePlayer({
+                  name: value.name,
+                  sponsor: value.sponsor || player().sponsor,
+                });
+                setInputValue(value.name || "");
               }}
               itemComponent={(props) => (
                 <ComboboxItem item={props.item}>
-                  <ComboboxItemLabel>{props.item.rawValue}</ComboboxItemLabel>
+                  <ComboboxItemLabel>
+                    {props.item.rawValue.name}
+                  </ComboboxItemLabel>
                   <ComboboxItemIndicator />
                 </ComboboxItem>
               )}
@@ -140,7 +147,18 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
                   onInput={(e) => {
                     const value = e.currentTarget.value;
                     setInputValue(value);
-                    updatePlayer({ name: value });
+                    const matchingPlayer = nameSuggestions().find(
+                      (player) =>
+                        player.name.toLowerCase() === value.toLowerCase()
+                    );
+                    if (matchingPlayer) {
+                      updatePlayer({
+                        name: matchingPlayer.name,
+                        sponsor: matchingPlayer.sponsor,
+                      });
+                    } else {
+                      updatePlayer({ name: value, sponsor: "" });
+                    }
                   }}
                 />
                 <ComboboxTrigger />

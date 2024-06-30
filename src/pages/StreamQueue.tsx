@@ -166,15 +166,27 @@ const StreamQueue = () => {
         ...prevState.scoreboard,
         players: [
           {
-            name: set.slots[0].entrant.name,
-            sponsor: "",
+            name:
+              (set.slots[0].entrant.name.includes("|")
+                ? set.slots[0].entrant.name.split(" | ")[1]
+                : set.slots[0].entrant.name) || "",
+            sponsor:
+              (set.slots[0].entrant.name.includes("|") &&
+                set.slots[0].entrant.name.split(" | ")[0]) ||
+              "",
             score: 0,
             h2hWins: 0,
             pronouns: Pronouns.TheyThem,
           },
           {
-            name: set.slots[1].entrant.name,
-            sponsor: "",
+            name:
+              (set.slots[1].entrant.name.includes("|")
+                ? set.slots[1].entrant.name.split(" | ")[1]
+                : set.slots[1].entrant.name) || "",
+            sponsor:
+              (set.slots[1].entrant.name.includes("|") &&
+                set.slots[1].entrant.name.split(" | ")[0]) ||
+              "",
             score: 0,
             h2hWins: 0,
             pronouns: Pronouns.TheyThem,
@@ -254,10 +266,10 @@ const StreamQueue = () => {
                     {(set) => (
                       <TableRow>
                         <TableCell class="font-medium">
-                          {set.slots[0].entrant.name}
+                          {set.slots[0].entrant.name || ""}
                         </TableCell>
-                        <TableCell>{set.slots[1].entrant.name}</TableCell>
-                        <TableCell>{set.fullRoundText}</TableCell>
+                        <TableCell>{set.slots[1].entrant.name || ""}</TableCell>
+                        <TableCell>{set.fullRoundText || ""}</TableCell>
                         <TableCell class="text-right">
                           <Button onClick={() => handleSelectMatch(set)}>
                             Select

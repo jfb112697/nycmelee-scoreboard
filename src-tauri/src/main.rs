@@ -84,7 +84,7 @@ fn main() {
     let migrations = vec![Migration {
         version: 1,
         description: "create_initial_tables",
-        sql: "CREATE TABLE IF NOT EXISTS playernames (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE);",
+        sql: "CREATE TABLE IF NOT EXISTS playernames (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, sponsor TEXT);",
         kind: MigrationKind::Up,
     }];
 
