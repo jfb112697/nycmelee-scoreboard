@@ -5,6 +5,7 @@ import {
   For,
   Show,
   onMount,
+  Accessor,
 } from "solid-js";
 import { listen, once } from "@tauri-apps/api/event";
 import { useAppState } from "../context/StateContext";
@@ -20,17 +21,20 @@ import {
 import { Button } from "~/components/ui/button";
 import ScoreboardInfoContainer from "~/components/ScoreboardInfoContainer";
 import LowerThird from "~/components/LowerThird";
-import { ScoreboardCommand } from "~/types";
+import { ScoreboardCommand, StreamQueue } from "~/types";
 import { useNavigate } from "@solidjs/router";
 import { fs, path } from "@tauri-apps/api";
 import { P } from "node_modules/@kobalte/core/dist/index-b0947c3c";
 import { InitializeDatabase } from "~/components/Settings/MeleePlayerDatabase";
+import { Pronouns } from "~/enums";
 
 const createCommands = (
   setCurrentTab: (tab: string) => void,
   focusPlayer1: () => void,
   navigate: (path: string) => void,
-  commitScoreboard: () => void
+  commitScoreboard: () => void,
+  handleSelectMatch: (set: any) => void,
+  selectedStreamQueue: Accessor<StreamQueue | null>
 ): ScoreboardCommand[] => [
   {
     name: "Players",
@@ -71,6 +75,13 @@ const createCommands = (
       commitScoreboard();
     },
   },
+  {
+    name: "Take Next Stream Queue Match",
+    description: "Accepts the next match in the Stream Queue",
+    action: () => {
+      handleSelectMatch(selectedStreamQueue()!.sets[0]);
+    },
+  },
 ];
 
 const Home = () => {
@@ -79,6 +90,19 @@ const Home = () => {
     HTMLInputElement | undefined
   >();
   const navigate = useNavigate();
+  const [selectedStreamQueue, setSelectedStreamQueue] =
+    createSignal<StreamQueue | null>(null);
+
+  createEffect(() => {
+    if (state.selectedStream) {
+      const selectedStreamQueue = state.streamQueues.find(
+        (stream) => stream.stream.streamName === state.selectedStream
+      );
+      if (selectedStreamQueue) {
+        setSelectedStreamQueue(selectedStreamQueue as StreamQueue);
+      }
+    }
+  });
 
   const focusPlayer1 = () => {
     player1Ref()?.focus();
@@ -115,7 +139,9 @@ const Home = () => {
       setCurrentTab,
       focusPlayer1,
       navigate,
-      commitScoreboard
+      commitScoreboard,
+      handleSelectMatch,
+      selectedStreamQueue
     );
     setState((prev) => ({ ...prev, commands }));
     checkForIcons();
@@ -156,28 +182,91 @@ const Home = () => {
     }
   };
 
+  const handleSelectMatch = (set: any) => {
+    setState((prevState) => ({
+      ...prevState,
+      scoreboard: {
+        ...prevState.scoreboard,
+        players: [
+          {
+            name:
+              (set.slots[0].entrant.name.includes("|")
+                ? set.slots[0].entrant.name.split(" | ")[1]
+                : set.slots[0].entrant.name) || "",
+            sponsor:
+              (set.slots[0].entrant.name.includes("|") &&
+                set.slots[0].entrant.name.split(" | ")[0]) ||
+              "",
+            score: 0,
+            h2hWins: 0,
+            pronouns: Pronouns.TheyThem,
+          },
+          {
+            name:
+              (set.slots[1].entrant.name.includes("|")
+                ? set.slots[1].entrant.name.split(" | ")[1]
+                : set.slots[1].entrant.name) || "",
+            sponsor:
+              (set.slots[1].entrant.name.includes("|") &&
+                set.slots[1].entrant.name.split(" | ")[0]) ||
+              "",
+            score: 0,
+            h2hWins: 0,
+            pronouns: Pronouns.TheyThem,
+          },
+        ],
+        round: set.fullRoundText,
+      },
+    }));
+    navigate("/", { replace: true });
+  };
+
   return (
     <div class="flex-1 space-y-4 p-8 pt-6">
       <div class="flex items-center justify-between space-y-2">
         <div class="flex flex-col flex-1 items-stretch space-x-2 gap-2">
-          <h2 class="text-3xl font-bold tracking-tight">Scoreboard</h2>
           <Show when={(state.characters || []).length < 1}>
             <div class="w-full h-48 border-dashed border-4 border-x-nycmelee-border-light flex items-center justify-center text-nycmelee-white">
               Drop character icons folder here
             </div>
           </Show>
-          <Show when={(state.characters || []).length > 0}>
-            <Tabs
-              defaultValue="match"
-              onChange={(v) => setCurrentTab(v)}
-              value={state.home.currentTab || "match"}
-              class="space-y-4"
-            >
-              <TabsList>
-                <TabsTrigger value="match">Match</TabsTrigger>
-                <TabsTrigger value="commentary">Commentary</TabsTrigger>
-                <TabsTrigger value="lower-third">Lower Third</TabsTrigger>
-              </TabsList>
+          <Tabs
+            defaultValue="match"
+            onChange={(v) => setCurrentTab(v)}
+            value={state.home.currentTab || "match"}
+            class="space-y-4"
+          >
+            <div class="flex w-full justify-between gap-4 flex-col md:flex-row">
+              <div class="flex flex-col justify-between gap-4 max-w-[50%]">
+                <h2 class="text-3xl font-bold tracking-tight">Scoreboard</h2>
+
+                <TabsList class="w-fit">
+                  <TabsTrigger value="match">Match</TabsTrigger>
+                  <TabsTrigger value="commentary">Commentary</TabsTrigger>
+                  <TabsTrigger value="lower-third">Lower Third</TabsTrigger>
+                </TabsList>
+              </div>
+              <Show when={selectedStreamQueue()}>
+                <Card class="flex flex-col justify-between">
+                  <CardHeader class="flex flex-row items-center justify-between space-y-0">
+                    <span class="text-sm font-medium">Up Next</span>
+                    <Button
+                      onClick={() => {
+                        handleSelectMatch(selectedStreamQueue()?.sets[0]);
+                      }}
+                      variant={"outline"}
+                    >
+                      Start
+                    </Button>
+                  </CardHeader>
+                  <CardContent class="flex flex-col gap-4">
+                    {selectedStreamQueue()!.sets[0].slots[0].entrant.name} vs{" "}
+                    {selectedStreamQueue()!.sets[0].slots[1].entrant.name}
+                  </CardContent>
+                </Card>
+              </Show>
+            </div>
+            <Show when={(state.characters || []).length > 0}>
               <TabsContent value="match" class="space-y-4">
                 <div class="flex justify-between gap-3 flex-wrap md:flex-nowrap">
                   <For each={state.scoreboard.players}>
@@ -285,8 +374,8 @@ const Home = () => {
               <TabsContent value="lower-third" class="space-y-4">
                 <LowerThird />
               </TabsContent>
-            </Tabs>
-          </Show>
+            </Show>
+          </Tabs>
         </div>
       </div>
     </div>

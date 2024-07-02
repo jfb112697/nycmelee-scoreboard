@@ -38,6 +38,7 @@ const LowerThird = () => {
           let [entrant1, entrant2] = streamQueue.sets[0].slots;
           annotation = "NEXT";
           text = `${entrant1.entrant.name} vs ${entrant2.entrant.name}`;
+          commitScoreboard();
         }
       }
     }

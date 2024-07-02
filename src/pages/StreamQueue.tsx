@@ -263,20 +263,25 @@ const StreamQueue = () => {
                 </TableHeader>
                 <TableBody>
                   <For each={streamQueue()}>
-                    {(set) => (
-                      <TableRow>
-                        <TableCell class="font-medium">
-                          {set.slots[0].entrant.name || ""}
-                        </TableCell>
-                        <TableCell>{set.slots[1].entrant.name || ""}</TableCell>
-                        <TableCell>{set.fullRoundText || ""}</TableCell>
-                        <TableCell class="text-right">
-                          <Button onClick={() => handleSelectMatch(set)}>
-                            Select
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )}
+                    {(set) =>
+                      set.slots &&
+                      set.slots.length > 0 && (
+                        <TableRow>
+                          <TableCell class="font-medium">
+                            {set.slots[0].entrant.name || ""}
+                          </TableCell>
+                          <TableCell>
+                            {set.slots[1].entrant.name || ""}
+                          </TableCell>
+                          <TableCell>{set.fullRoundText || ""}</TableCell>
+                          <TableCell class="text-right">
+                            <Button onClick={() => handleSelectMatch(set)}>
+                              Select
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    }
                   </For>
                 </TableBody>
               </Table>
