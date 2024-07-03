@@ -32,13 +32,12 @@ const LowerThird = () => {
     } else if (mode === "next") {
       if (state.selectedStream && state.streamQueues) {
         const streamQueue = state.streamQueues.find(
-          (sQ: any) => sQ.stream.streamName === state.selectedStream
+          (sQ: any) => sQ.stream.streamName === state.selectedStream,
         );
         if (streamQueue && streamQueue.sets.length > 0) {
           let [entrant1, entrant2] = streamQueue.sets[0].slots;
           annotation = "NEXT";
           text = `${entrant1.entrant.name} vs ${entrant2.entrant.name}`;
-          commitScoreboard();
         }
       }
     }
@@ -77,6 +76,10 @@ const LowerThird = () => {
 
   const handleScoresToggle = (e: any) => {
     update.scoreboard.lowerThird.update({ Scores: e });
+  };
+
+  const handleUpdateLowerThird = () => {
+    commitScoreboard();
   };
 
   return (
@@ -148,7 +151,7 @@ const LowerThird = () => {
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={commitScoreboard}>Update Lower Third</Button>
+        <Button onClick={handleUpdateLowerThird}>Update Lower Third</Button>
       </CardFooter>
     </Card>
   );

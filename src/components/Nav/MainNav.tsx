@@ -22,6 +22,10 @@ export function MainNav(props: ComponentProps<"nav">) {
       name: "Stream Queue",
       href: "/stream-queue",
     },
+    {
+      name: "Players",
+      href: "/players",
+    },
   ];
 
   const getNavItems = () => {

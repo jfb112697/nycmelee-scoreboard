@@ -68,6 +68,11 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
     }
   });
 
+  // Add this effect to update the input value when the player name changes
+  createEffect(() => {
+    setInputValue(player().name || "");
+  });
+
   createEffect(() => {
     if (player().realCharacter) {
       updatePlayer({ ...player(), character: player().realCharacter!.name });
@@ -113,7 +118,7 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
             </TextField>
             <Combobox<Partial<Player>>
               options={nameSuggestions()}
-              optionValue={(item) => item.name || ""} // Update the optionValue prop to return the name property of the item
+              optionValue={(item) => item.name || ""}
               optionTextValue={(item) => item.name || ""}
               optionLabel={(item) => item.name || ""}
               placeholder="Name"
@@ -149,7 +154,7 @@ const PlayerContainer = (props: { index: number; ref: any }) => {
                     setInputValue(value);
                     const matchingPlayer = nameSuggestions().find(
                       (player) =>
-                        player.name.toLowerCase() === value.toLowerCase()
+                        player.name.toLowerCase() === value.toLowerCase(),
                     );
                     if (matchingPlayer) {
                       updatePlayer({

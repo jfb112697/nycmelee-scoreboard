@@ -9,6 +9,7 @@ import {
   createLocalStorageManager,
 } from "@kobalte/core";
 import StreamQueue from "./pages/StreamQueue";
+import Players from "./pages/Players";
 
 const storageManager = createLocalStorageManager("vite-ui-theme");
 
@@ -21,9 +22,10 @@ render(
         <Router root={App}>
           <Route path="/" component={Home} />
           <Route path="/stream-queue" component={StreamQueue} />
+          <Route path="/players" component={Players} />
         </Router>
       </ColorModeProvider>
     </>
   ),
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );

@@ -48,7 +48,7 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
 
   const swapPlayers = () => {
     const [player1, player2] = JSON.parse(
-      JSON.stringify(state.scoreboard.players)
+      JSON.stringify(state.scoreboard.players),
     );
     update.scoreboard.players[0].update(player2);
     update.scoreboard.players[1].update(player1);
@@ -75,7 +75,7 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
               }
             />
           </TextField>
-          <TextField class="min-w-[80px]">
+          <TextField class="max-w-[80px]">
             <TextFieldInput
               type="text"
               id="bestof"
@@ -86,7 +86,7 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
               }
             />
           </TextField>
-          <TextField>
+          <TextField class="flex-shrink">
             <TextFieldInput
               type="text"
               id="tournamentName"
@@ -117,7 +117,7 @@ const ScoreboardInfoContainer: Component<{}> = (props) => {
             Reset
           </Button>
           <Button
-            class="min-w-[115px] flex-1 md:w-full"
+            class="min-w-[115px] flex-1 md:w-full flex-shrink-0"
             tabIndex={1}
             onClick={async () => await commitScoreboard()}
           >
