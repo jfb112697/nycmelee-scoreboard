@@ -324,11 +324,24 @@ const Home = () => {
                                 id="name"
                                 placeholder="Name"
                                 value={commentator.name || ""}
-                                onInput={(e) =>
-                                  update.scoreboard.Commentators[
-                                    index()
-                                  ].update({ name: e.currentTarget.value })
-                                }
+                                onInput={(e) => {
+                                  setState((prev) => {
+                                    const newCommentators = [
+                                      ...prev.scoreboard.Commentators,
+                                    ];
+                                    newCommentators[index()] = {
+                                      ...newCommentators[index()],
+                                      name: e.currentTarget.value,
+                                    };
+                                    return {
+                                      ...prev,
+                                      scoreboard: {
+                                        ...prev.scoreboard,
+                                        Commentators: newCommentators,
+                                      },
+                                    };
+                                  });
+                                }}
                               />
                             </TextField>
                             <TextField>
@@ -338,11 +351,24 @@ const Home = () => {
                                 id="twitter"
                                 placeholder="Twitter"
                                 value={commentator.twitter || ""}
-                                onInput={(e) =>
-                                  update.scoreboard.Commentators[
-                                    index()
-                                  ].update({ twitter: e.currentTarget.value })
-                                }
+                                onInput={(e) => {
+                                  setState((prev) => {
+                                    const newCommentators = [
+                                      ...prev.scoreboard.Commentators,
+                                    ];
+                                    newCommentators[index()] = {
+                                      ...newCommentators[index()],
+                                      name: e.currentTarget.value,
+                                    };
+                                    return {
+                                      ...prev,
+                                      scoreboard: {
+                                        ...prev.scoreboard,
+                                        Commentators: newCommentators,
+                                      },
+                                    };
+                                  });
+                                }}
                               />
                             </TextField>
                             <Button

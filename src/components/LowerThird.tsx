@@ -32,7 +32,7 @@ const LowerThird = () => {
     } else if (mode === "next") {
       if (state.selectedStream && state.streamQueues) {
         const streamQueue = state.streamQueues.find(
-          (sQ: any) => sQ.stream.streamName === state.selectedStream,
+          (sQ: any) => sQ.stream.streamName === state.selectedStream
         );
         if (streamQueue && streamQueue.sets.length > 0) {
           let [entrant1, entrant2] = streamQueue.sets[0].slots;
@@ -97,7 +97,12 @@ const LowerThird = () => {
           >
             <TabsList>
               <TabsTrigger value="now">Now</TabsTrigger>
-              <TabsTrigger value="next">Next</TabsTrigger>
+              <TabsTrigger
+                value="next"
+                disabled={!(state.selectedStream && state.streamQueues)}
+              >
+                Next
+              </TabsTrigger>
               <TabsTrigger value="custom">Custom</TabsTrigger>
             </TabsList>
           </Tabs>

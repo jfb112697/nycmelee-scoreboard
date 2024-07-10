@@ -72,6 +72,7 @@ const initialState: State = {
       Music: null,
       Scores: false,
       Commentary: true,
+      Compact: false,
     },
   },
   characters: null,
@@ -228,6 +229,7 @@ export function StateProvider(props: { children: any }) {
   const { saveSuggestion } = useDb();
 
   const commitScoreboard = async () => {
+    console.log("Committing scoreboard");
     state.scoreboard.players.forEach((player) => {
       saveSuggestion(player.name, player.sponsor || "");
     });
@@ -265,6 +267,7 @@ export function StateProvider(props: { children: any }) {
       }
     }
     // Start backwards compatiblity changes
+
     update.scoreboard.Player1.update(state.scoreboard.players[0]);
     update.scoreboard.Player2.update(state.scoreboard.players[1]);
     setState({
@@ -274,6 +277,16 @@ export function StateProvider(props: { children: any }) {
         Smashgg: {
           ...state.scoreboard.Smashgg,
           slug: state.settings.ggTournamentSlug,
+        },
+      },
+    });
+    setState({
+      ...state,
+      scoreboard: {
+        ...state.scoreboard,
+        lowerThird: {
+          ...state.scoreboard.lowerThird,
+          Compact: state.scoreboard.lowerThird.Scores,
         },
       },
     });

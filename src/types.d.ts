@@ -33,6 +33,7 @@ export interface LowerThird {
     Music: string | null;
     Scores: boolean;
     Commentary: boolean;
+    Compact: boolean | false;
 }
 
 export interface Smashgg {

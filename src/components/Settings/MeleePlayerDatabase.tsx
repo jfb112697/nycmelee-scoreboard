@@ -1,7 +1,7 @@
 import { createSignal, createEffect, onCleanup, onMount, Show } from "solid-js";
 import { listen, once } from "@tauri-apps/api/event";
 import { useAppState } from "../../context/StateContext";
-import { appDataDir } from "@tauri-apps/api/path";
+import { BaseDirectory, appDataDir } from "@tauri-apps/api/path";
 import { fs } from "@tauri-apps/api";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
@@ -11,7 +11,8 @@ import { metadata } from "tauri-plugin-fs-extra-api";
 const checkDatabase = async (setAge: any) => {
   const appDataPath = await appDataDir();
   const databasePath = `${appDataPath}/melee_player_database.db`;
-  const exists = await fs.exists(databasePath);
+  const exists = await fs.exists("melee_player_database.db");
+  console.log("exists", exists);
   await metadata(databasePath).then((data) => {
     setAge(data.createdAt);
   });
