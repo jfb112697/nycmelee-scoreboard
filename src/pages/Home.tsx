@@ -27,6 +27,7 @@ import { fs, path } from "@tauri-apps/api";
 import { P } from "node_modules/@kobalte/core/dist/index-b0947c3c";
 import { InitializeDatabase } from "~/components/Settings/MeleePlayerDatabase";
 import { Pronouns } from "~/enums";
+import CommentatorInput from "~/components/CommentatorInput";
 
 const createCommands = (
   setCurrentTab: (tab: string) => void,
@@ -315,83 +316,11 @@ const Home = () => {
                             Commentator {index() + 1}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <div class="flex flex-row gap-3 items-end">
-                            <TextField>
-                              <TextFieldLabel>Name</TextFieldLabel>
-                              <TextFieldInput
-                                type="text"
-                                id="name"
-                                placeholder="Name"
-                                value={commentator.name || ""}
-                                onInput={(e) => {
-                                  setState((prev) => {
-                                    const newCommentators = [
-                                      ...prev.scoreboard.Commentators,
-                                    ];
-                                    newCommentators[index()] = {
-                                      ...newCommentators[index()],
-                                      name: e.currentTarget.value,
-                                    };
-                                    return {
-                                      ...prev,
-                                      scoreboard: {
-                                        ...prev.scoreboard,
-                                        Commentators: newCommentators,
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                            </TextField>
-                            <TextField>
-                              <TextFieldLabel>Twitter</TextFieldLabel>
-                              <TextFieldInput
-                                type="text"
-                                id="twitter"
-                                placeholder="Twitter"
-                                value={commentator.twitter || ""}
-                                onInput={(e) => {
-                                  setState((prev) => {
-                                    const newCommentators = [
-                                      ...prev.scoreboard.Commentators,
-                                    ];
-                                    newCommentators[index()] = {
-                                      ...newCommentators[index()],
-                                      name: e.currentTarget.value,
-                                    };
-                                    return {
-                                      ...prev,
-                                      scoreboard: {
-                                        ...prev.scoreboard,
-                                        Commentators: newCommentators,
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                            </TextField>
-                            <Button
-                              variant={"destructive"}
-                              class="ms-auto"
-                              onClick={() => {
-                                let commentators = [
-                                  ...state.scoreboard.Commentators,
-                                ];
-                                commentators.splice(index(), 1);
-                                setState({
-                                  ...state,
-                                  scoreboard: {
-                                    ...state.scoreboard,
-                                    Commentators: commentators,
-                                  },
-                                });
-                              }}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </CardContent>
+                        <CommentatorInput
+                          commentator={commentator}
+                          index={index()}
+                          setState={setState}
+                        />
                       </Card>
                     )}
                   </For>
