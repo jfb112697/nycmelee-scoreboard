@@ -316,11 +316,7 @@ const Home = () => {
                             Commentator {index() + 1}
                           </CardTitle>
                         </CardHeader>
-                        <CommentatorInput
-                          commentator={commentator}
-                          index={index()}
-                          setState={setState}
-                        />
+                        <CommentatorInput index={index()} />
                       </Card>
                     )}
                   </For>

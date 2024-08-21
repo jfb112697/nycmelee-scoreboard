@@ -1,8 +1,7 @@
-import { For, createEffect, createMemo, createSignal, onMount } from "solid-js";
+import { For, createEffect, createMemo, onMount } from "solid-js";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { useAppState } from "~/context/StateContext";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Settings } from "~/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { get } from "http";
 import {
   Table,
-  TableCaption,
   TableHeader,
   TableRow,
   TableHead,
@@ -22,18 +19,6 @@ import {
 } from "~/components/ui/table";
 import { Pronouns } from "~/enums";
 import { useNavigate } from "@solidjs/router";
-
-const TOURNAMENT_QUERY = `
-  query TournamentQuery($slug: String) {
-    tournament(slug: $slug) {
-      id
-      name
-      streams {
-        streamName
-      }
-    }
-  }
-`;
 
 const STREAMQUEUE_QUERY = `
 query TournamentQuery($slug: String) {
@@ -60,71 +45,36 @@ query TournamentQuery($slug: String) {
 
 const StreamQueue = () => {
   const { state, setState } = useAppState();
-  const [streams, setStreams] = createSignal([]);
-  const [selectedStream, setSelectedStream] = createSignal<string>(
-    state.selectedStream
-  );
-  const [streamQueue, setStreamQueue] = createSignal<any>(state.streamQueues);
   const navigate = useNavigate();
 
   const settings = createMemo(() => state.settings);
+  const selectedStream = createMemo(() => state.selectedStream);
+  const streamQueues = createMemo(() => state.streamQueues);
+
+  const currentStreamQueue = createMemo(() =>
+    streamQueues().find((queue) => queue.stream.streamName === selectedStream())
+  );
 
   onMount(() => {
-    getTournamentStreams(settings().ggTournamentSlug);
-    console.log(selectedStream());
-    if (selectedStream()) {
-      console.log("getting stream queue");
+    if (settings().ggTournamentSlug && settings().ggToken) {
       getStreamQueue(settings().ggTournamentSlug);
     }
   });
 
   createEffect(() => {
-    const currentSelectedStream = selectedStream();
-    if (currentSelectedStream) {
-      setState((prevState) => ({
-        ...prevState,
-        selectedStream: currentSelectedStream,
-        updateStreamQueue: async () => {
-          await getStreamQueue(settings().ggTournamentSlug);
-        },
-      }));
-      console.log(state);
-      getStreamQueue(settings().ggTournamentSlug);
-    }
-  });
-
-  createEffect(() => {
-    setStreams(state.streamQueues as any);
-  });
-
-  const getTournamentStreams = async (slug: string) => {
-    try {
-      const query = TOURNAMENT_QUERY;
-      const variables = JSON.stringify({ slug });
-      const apiToken = settings().ggToken;
-
-      if (apiToken && slug) {
-        const response = await invoke("send_graphql_request", {
-          apiToken: apiToken,
-          query,
-          variables,
-        });
-
-        const jsonResponse = JSON.parse(response as string);
-        if (
-          jsonResponse.data &&
-          jsonResponse.data.tournament &&
-          jsonResponse.data.tournament.streams
-        ) {
-          setStreams(jsonResponse.data.tournament.streams);
-        } else {
-          console.error("Error fetching events:", jsonResponse.errors);
-        }
+    if (selectedStream() && streamQueues().length > 0) {
+      const newCurrentQueue = streamQueues().find(
+        (queue) => queue.stream.streamName === selectedStream()
+      );
+      if (!newCurrentQueue) {
+        // If the selected stream is not in the queue, select the first available stream
+        setState((prev) => ({
+          ...prev,
+          selectedStream: streamQueues()[0].stream.streamName,
+        }));
       }
-    } catch (error) {
-      console.error("Error:", error);
     }
-  };
+  });
 
   const getStreamQueue = async (slug: string) => {
     try {
@@ -144,18 +94,19 @@ const StreamQueue = () => {
         jsonResponse.data.tournament &&
         jsonResponse.data.tournament.streamQueue
       ) {
-        const streamQueues = jsonResponse.data.tournament.streamQueue as any[];
-        setState((prevState) => ({ ...prevState, streamQueues: streamQueues }));
-        setStreamQueue(
-          streamQueues.find(
-            (stream) => stream.stream.streamName === selectedStream()
-          )?.sets || []
-        );
+        const streamQueues = jsonResponse.data.tournament.streamQueue;
+        setState((prev) => ({
+          ...prev,
+          streamQueues,
+          selectedStream:
+            prev.selectedStream ||
+            (streamQueues[0] && streamQueues[0].stream.streamName),
+        }));
       } else {
-        console.error("Error fetching events:", jsonResponse.errors);
+        console.error("Error fetching stream queue:", jsonResponse.errors);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error fetching stream queue:", error);
     }
   };
 
@@ -218,7 +169,7 @@ const StreamQueue = () => {
               >
                 smash.gg
               </a>
-              and singing in to your account, clicking your icon in the bottom
+              and signing in to your account, clicking your icon in the bottom
               left and navigating to Developer Settings.
             </p>
           </div>
@@ -226,22 +177,27 @@ const StreamQueue = () => {
       ) : (
         <Card class="w-full mt-4 p-4">
           <CardHeader class="flex flex-row items-center justify-between gap-4">
-            <CardTitle class="flax-shrink">Stream Queue</CardTitle>
+            <CardTitle class="flex-shrink">Stream Queue</CardTitle>
             <DropdownMenu>
               <DropdownMenuTrigger
-                variant={"outline"}
+                variant="outline"
                 class="max-w-[200px] m-0"
                 as={Button<"button">}
               >
                 {selectedStream() || "Select a Stream"}
               </DropdownMenuTrigger>
               <DropdownMenuContent class="w-48">
-                <For each={streams()}>
-                  {(stream: any) => (
+                <For each={streamQueues()}>
+                  {(queue: any) => (
                     <DropdownMenuItem
-                      onClick={() => setSelectedStream(stream.streamName)}
+                      onClick={() =>
+                        setState((prev) => ({
+                          ...prev,
+                          selectedStream: queue.stream.streamName,
+                        }))
+                      }
                     >
-                      {stream.streamName}
+                      {queue.stream.streamName}
                     </DropdownMenuItem>
                   )}
                 </For>
@@ -249,8 +205,8 @@ const StreamQueue = () => {
             </DropdownMenu>
           </CardHeader>
           <CardContent class="flex flex-col gap-4">
-            {!selectedStream() ? (
-              <h1>No Stream Selected</h1>
+            {!currentStreamQueue() ? (
+              <h1>No Stream Selected or No Matches in Queue</h1>
             ) : (
               <Table class="border-muted-foreground border-1 rounded-lg">
                 <TableHeader>
@@ -262,26 +218,23 @@ const StreamQueue = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <For each={streamQueue()}>
-                    {(set) =>
-                      set.slots &&
-                      set.slots.length > 0 && (
-                        <TableRow>
-                          <TableCell class="font-medium">
-                            {set.slots[0].entrant.name || ""}
-                          </TableCell>
-                          <TableCell>
-                            {set.slots[1].entrant.name || ""}
-                          </TableCell>
-                          <TableCell>{set.fullRoundText || ""}</TableCell>
-                          <TableCell class="text-right">
-                            <Button onClick={() => handleSelectMatch(set)}>
-                              Select
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    }
+                  <For each={currentStreamQueue()?.sets}>
+                    {(set) => (
+                      <TableRow>
+                        <TableCell class="font-medium">
+                          {set.slots[0]?.entrant?.name || ""}
+                        </TableCell>
+                        <TableCell>
+                          {set.slots[1]?.entrant?.name || ""}
+                        </TableCell>
+                        <TableCell>{set.fullRoundText || ""}</TableCell>
+                        <TableCell class="text-right">
+                          <Button onClick={() => handleSelectMatch(set)}>
+                            Select
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </For>
                 </TableBody>
               </Table>

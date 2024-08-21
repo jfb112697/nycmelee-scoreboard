@@ -1,90 +1,61 @@
-import { createSignal, createEffect } from "solid-js";
-import { TextField } from "./ui/text-field";
-import { CardContent } from "./ui/card";
-import { TextFieldLabel, TextFieldInput } from "./ui/text-field";
+import { createMemo } from "solid-js";
+import { TextField, TextFieldInput } from "./ui/text-field";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
+import { useAppState } from "~/context/StateContext";
+import { produce } from "solid-js/store";
 
-// Inside your component, before the return statement:
-const CommentatorInput = (props: {
-  commentator: { name: any; twitter: any };
-  setState: (arg0: { (prev: any): any; (prev: any): any }) => void;
-  index: number;
-}) => {
-  const [localName, setLocalName] = createSignal(props.commentator.name || "");
-  const [localTwitter, setLocalTwitter] = createSignal(
-    props.commentator.twitter || ""
+const CommentatorInput = (props: { index: number }) => {
+  const { state, setState } = useAppState();
+
+  const commentator = createMemo(
+    () => state.scoreboard.Commentators[props.index]
   );
 
-  createEffect(() => {
-    setLocalName(props.commentator.name || "");
-    setLocalTwitter(props.commentator.twitter || "");
-  });
-
-  const updateGlobalState = () => {
-    props.setState((prev: { scoreboard: { Commentators: any } }) => {
-      const newCommentators = [...prev.scoreboard.Commentators];
-      newCommentators[props.index] = {
-        ...newCommentators[props.index],
-        name: localName(),
-        twitter: localTwitter(),
-      };
-      return {
-        ...prev,
-        scoreboard: {
-          ...prev.scoreboard,
-          Commentators: newCommentators,
-        },
-      };
-    });
+  const updateCommentator = (
+    data: Partial<{ name: string; twitter: string }>
+  ) => {
+    setState(
+      produce((s) => {
+        Object.assign(s.scoreboard.Commentators[props.index], data);
+      })
+    );
   };
 
   return (
     <CardContent>
-      <div class="flex flex-row gap-3 items-end">
-        <TextField>
-          <TextFieldLabel>Name</TextFieldLabel>
-          <TextFieldInput
-            type="text"
-            id="name"
-            placeholder="Name"
-            value={localName()}
-            onInput={(e: { currentTarget: { value: any } }) =>
-              setLocalName(e.currentTarget.value)
-            }
-            onBlur={updateGlobalState}
-          />
-        </TextField>
-        <TextField>
-          <TextFieldLabel>Twitter</TextFieldLabel>
-          <TextFieldInput
-            type="text"
-            id="twitter"
-            placeholder="Twitter"
-            value={localTwitter()}
-            onInput={(e: { currentTarget: { value: any } }) =>
-              setLocalTwitter(e.currentTarget.value)
-            }
-            onBlur={updateGlobalState}
-          />
-        </TextField>
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between gap-3 items-end w-full">
+          <TextField class="w-full">
+            <TextFieldInput
+              type="text"
+              id={`commentator-name-${props.index}`}
+              placeholder="Name"
+              value={commentator().name || ""}
+              onInput={(e) =>
+                updateCommentator({ name: e.currentTarget.value })
+              }
+            />
+          </TextField>
+          <TextField class="w-full">
+            <TextFieldInput
+              type="text"
+              id={`commentator-twitter-${props.index}`}
+              placeholder="Twitter"
+              value={commentator().twitter || ""}
+              onInput={(e) =>
+                updateCommentator({ twitter: e.currentTarget.value })
+              }
+            />
+          </TextField>
+        </div>
         <Button
-          variant={"destructive"}
-          class="ms-auto"
+          variant="destructive"
           onClick={() => {
-            props.setState((prev: { scoreboard: { Commentators: any } }) => {
-              const newCommentators = [...prev.scoreboard.Commentators];
-              newCommentators.splice(props.index, 1);
-              return {
-                ...prev,
-                scoreboard: {
-                  ...prev.scoreboard,
-                  Commentators: newCommentators,
-                },
-              };
-            });
+            updateCommentator({ name: "", twitter: "" });
           }}
         >
-          Remove
+          Reset
         </Button>
       </div>
     </CardContent>
